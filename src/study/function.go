@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 )
 
 /**
@@ -73,10 +74,51 @@ func testDefer() {
 }
 
 //------------------函数类型--------------------------//
-type mapFunc func([...]string, int) string
+type cmp func(int, int) (int)
 
-func myMap(arr [...]string) {
-	//
+func quickSort(arr []int, size int, cmpare cmp) {
+	for index := 0; index < size - 1; index++ {
+		minIndex := index
+		for j := index + 1; j <= size -1; j++ {
+			if cmpare(arr[index], arr[j]) > 0 {
+				minIndex = j
+			}
+		}
+		if minIndex != index {
+			arr[index], arr[minIndex] = arr[minIndex], arr[index]
+		}
+	}
+}
+
+func cmpare(a, b int) (int) {
+	return a - b
+}
+
+
+//-------------------异常处理------------------------//
+// Go使用panic和recover进行异常处理
+// 每个包的init函数在导入时初始化完所有常量和变量后会自动执行init函数
+func init() {
+	defer func() { // 如果panic后,直接退出函数前依次执行defer
+		if e := recover(); e != nil {
+			fmt.Println(e)			
+			fmt.Println("接收并处理了异常")
+		}
+	}()
+	user := os.Getenv("USER")
+	if user == "" {
+		panic("user is undefined!") // 类似抛异常
+	}
+}
+
+func testRecover(f func()) (b bool) {
+	defer func() {
+		if e := recover(); e != nil { //使用recover相当于catch,返回值为捕获到的panic值
+			b = true
+		}
+	}()
+	f()
+	return
 }
 
 func main() {
@@ -86,6 +128,10 @@ func main() {
 	str := "lowercase223333!"
 	fmt.Println(toUppercase(&str))
 	testDefer()
+	arr := []int{3, 2, 6, 8, 9, 4, 20};
+	
+	quickSort(arr, 7, cmpare)
+	for _, ele := range arr {
+		fmt.Println(ele)
+	}
 }
-
-//
